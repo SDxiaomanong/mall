@@ -1,0 +1,14 @@
+目录结构划分：
+	assets（资源）：放img和css
+		img：
+		css：
+			normalize.css(在github里找的)调用别人做的初始化
+			base.css自己做初始化，别忘了用@import调用normalize
+	compontents：放公共组件
+		common：放完全公共的组件（很多项目都能用）
+		content：放当前项目业务相关的公共组件
+	views：视图，放对应页面文件夹，里面放页面组件
+	router：路由
+	store：放vuex状态管理
+	network：放网络相关的封装
+	common：放公共的js文件
