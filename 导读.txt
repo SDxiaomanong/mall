@@ -12,6 +12,10 @@
 	store：放vuex状态管理
 	network：放网络相关的封装
 	common：放公共的js文件
+
 2.引入两个css文件
+
 3.添加vue.config.js文件，会与系统的配置合并
    添加.editorconfig文件，里面写代码规范
+
+4.项目的模块划分：tabbar --> 路由映射关系
