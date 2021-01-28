@@ -1,37 +1,16 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <home-swiper :banners="banners"></home-swiper>
-    <recommend-view :recommends="recommends"></recommend-view>
-    <feature-view></feature-view>
-    <tab-control :titles="['流行','新款','精选']" @tabClick="tabClick"></tab-control>
-    <goods :goods="showGoods"></goods>
 
-    <ul>
-      <li>列表1</li>
-      <li>列表2</li>
-      <li>列表3</li>
-      <li>列表4</li>
-      <li>列表5</li>
-      <li>列表6</li>
-      <li>列表7</li>
-      <li>列表8</li>
-      <li>列表9</li>
-      <li>列表10</li>
-    </ul>
-    <ul>
-      <li>列表1</li>
-      <li>列表2</li>
-      <li>列表3</li>
-      <li>列表4</li>
-      <li>列表5</li>
-      <li>列表6</li>
-      <li>列表7</li>
-      <li>列表8</li>
-      <li>列表9</li>
-      <li>列表10</li>
-    </ul>
+    <scroll class="content" ref="scroll" :probeType='3' @scrollPosition="scrollPosition">
+      <home-swiper :banners="banners"></home-swiper>
+      <recommend-view :recommends="recommends"></recommend-view>
+      <feature-view></feature-view>
+      <tab-control :titles="['流行','新款','精选']" @tabClick="tabClick"></tab-control>
+      <goods :goods="showGoods"></goods>
+    </scroll>
     
+    <back-top @click.native="backClick" v-show="isShowBackTop"/>
   </div>
 
 </template>
@@ -44,6 +23,8 @@ import FeatureView from "./childComps/FeatureView"
 import NavBar from "components/common/navbar/NavBar"
 import TabControl from "components/content/tabControl/TabControl"
 import Goods from "components/content/goods/GoodsList"
+import Scroll from "components/common/scroll/Scroll"
+import BackTop from "components/content/backTop/BackTop"
 
 import {getHomeMultidata, getHomeGoods} from "network/home"
 
@@ -55,7 +36,9 @@ export default {
     RecommendView,
     FeatureView,
     TabControl,
-    Goods
+    Goods,
+    Scroll,
+    BackTop
   },
   data () {
     return {
@@ -67,6 +50,7 @@ export default {
         'sell': {page: 0, list: []}
       },
       currentType: 'pop',
+      isShowBackTop: false,
     }
   },
   computed: {
@@ -98,6 +82,13 @@ export default {
         break;
     }
    },
+   //返回顶部
+   backClick(){
+    this.$refs.scroll.scrollTo(0,0)
+   },
+   scrollPosition(position){
+    this.isShowBackTop = Math.abs(position.y)>1000 ? true : false;
+   },
     /*
     *   网络请求相关方法
     * */
@@ -120,6 +111,8 @@ export default {
 <style scoped>
   #home{
     padding: 44px 0 0;
+    height: 100vh;
+    position: relative;
   }
   .home-nav{
     background-color: var(--color-tint);
@@ -135,5 +128,14 @@ export default {
     position: sticky;
     top: 44px;
     z-index: 9;
+  }
+
+  .content{
+    position: absolute;
+    overflow: hidden;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
   }
 </style>
