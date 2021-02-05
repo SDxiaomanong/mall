@@ -1,17 +1,17 @@
 1.目录结构划分：
-	assets（资源）：放img和css
-		img：
-		css：
-			normalize.css(在github里找的)调用别人做的初始化
-			base.css自己做初始化，别忘了用@import调用normalize
-	compontents：放公共组件
-		common：放完全公共的组件（很多项目都能用）
-		content：放当前项目业务相关的公共组件
-	views：视图，放对应页面文件夹，里面放页面组件
-	router：路由
-	store：放vuex状态管理
-	network：放网络相关的封装
-	common：放公共的js文件
+     assets（资源）：放img和css
+	img：
+	css：
+	     normalize.css(在github里找的)调用别人做的初始化
+	     base.css自己做初始化，别忘了用@import调用normalize
+     compontents：放公共组件
+	common：放完全公共的组件（很多项目都能用）
+	content：放当前项目业务相关的公共组件
+     views：视图，放对应页面文件夹，里面放页面组件
+     router：路由
+     store：放vuex状态管理
+     network：放网络相关的封装
+     common：放公共的js文件
 
 2.引入两个css文件
 
@@ -20,6 +20,122 @@
 
 4.项目的模块划分：tabbar --> 路由映射关系
 
-5.网络封装在network中，因为使用的axios，恐以后作者不维护，故自己封装一层
+5.首页开发
+     navba的封装
+     网络数据的请求（网络封装在network中，因为使用的axios，恐以后作者不维护，故自己封装一层）
+     轮播图
+     推荐信息
 
-6.better-scroll是导入的组件，用于滚动条的滚动，操作效果好，也是自己又封装一层，具体使用见github
+6.FeatureView
+    独立封装组件featureView
+    div>a>img
+
+7.TabControl
+     独立封装
+     props->titles
+     div>根据title v-for遍历div ->span{{title}}
+
+8.首页商品数据的请求
+a:设计数据结构，用于保存数据
+goods:{
+     pop: page/list
+     new: page/list
+     sell: page/list
+}
+b:发送数据请求
+     在home.js封装getHomeGoods(type,page)
+     在Home.vue中，又在methods中getHomeGoods(type)
+     调用getHomeGoods('pop')/new/sell
+	page:动态的获取对应的page
+      获取到数据:res
+	this.goods[type].list.push(...res.data.list)//相当于循环遍历数组里面的数据放到前面数组中
+	this.goods[type].page+=1
+c:对商品数据进行展示
+     封装GoodsList.vue组件
+	props:goods->list[30]
+	v-for goods->GoodsListItem[30]
+	GoodListItem(组件)->GoodsItem(数据)
+     封装GoodsListItem组件
+	props:goodsItem
+	goodsItem取出数据，并且使用正确的div/span/img基本标签进行展示
+
+9.对滚动进行重构Bettrt-Scroll
+     在index.heml中使用Better-Scroll
+	conts bscroll = new BScroll(el,{})
+	注意:wrapper -> content -> 内容
+	1.监听滚动
+	     probeType:0(不监听)/1(不监听)/2(手指滚动监听)/3(只要是滚动就监听)
+	     bscroll.on('scroll',(position)=>{})
+	2.上拉加载
+	     pullUpLoad: true
+	     bscroll.on('pullingUp',()=>{})
+	3.click:false
+	     button可以监听点击，div不可以
+	设置为true后div可以点击
+     在vue中使用Better-Scroll
+	在Profile.vue中简单演示
+	对Better-Scroll进行封装：Scroll.vue
+	Home.vue和Scroll.vue之间进行通信
+	     Home.vue将probeType设置为3
+	     Scroll.vue需要通过$emit,实时将时间发送到Home.vue
+
+10.回到顶部BackTop
+     对BackTop组件进行封装
+     如何监听组件的点击
+	a.内部监听点击，通过自定义事件传出去
+	b.直接监听back-top组件的点击，必须加.native修饰符
+	     例：@click.native="backClick"
+     回到顶部
+	scroll对象，scroll.scrollTo(x,y,time)
+	this.$refs.scroll.scrollTo(0,0,500)
+     BackTop组件的显示和隐藏
+	isShowBackTop:false
+	监听滚动，拿到滚动的位置
+	     -position.y>1000 -> isShowBackTop:true
+11.解决首页中Better-Scroll可滚动区域的问题
+     Better-Scroll在决定有多少区域可以滚动时，是根据scrollHeight属性决定的
+	scrollHeight属性是根据放在Better-Scroll的content中的子组件的高度
+	但是我们的首页中，刚开始计算scrollHeight属性时，没有将图片计算在内
+	所以，计算出来的高度是错误的
+	后来图片加载进来后，有了新的高度，但是scrollHeight属性没有进行更新
+	所以滚动出现了问题
+     如何解决这个问题？
+	监听每一张图片是否加载完成，只要有一张图片加载完成，执行一次refresh()
+	如何监听图片加载完成？
+	     原生js中监听图片：img.onload = function(){}
+	     Vue中监听图片：@load="方法"
+	调用scroll的refresh()
+     如何将GoodsListItem.vue中的事件传入到Home.vue中
+	因为涉及到非父子组件的通信，所以这里我们选择了事件总线
+	     bus->总线
+	     Vue.prototype.$bus = newVue()
+	     this.$bus.$emit('事件名称',参数)
+	     this.$bus.$on('事件名称',回调函数(参数))
+     对于refresh非常频繁的问题，进行防抖操作
+	防抖debounce/节流throttle
+	防抖函数起作用的过程：
+	     如果我们直接执行refresh，那么refresh函数会被执行30次
+	     可以将refresh函数传入到debounce函数中，生成一个新的函数
+	     之后在调用非常频繁的时候，就使用新生成的函数
+	     而新生成的函数，并不会非常频繁的调用，如果下一次执行来的非常快，那么会将上一次取消掉
+		debounce(func, delay){
+		    let timer= null;
+		    return function(...args){
+		      if(timer) clearTimeout(timer)
+		      timer = setTimeout(() => {
+		        func.apply(this, args)
+		      },delay)
+		    }
+		   },
+12.tabControl的吸顶效果
+     获取到tabControl的offsetTop
+	必须知道滚动到多少时，开始有吸顶效果,这个时候就需要获取tabControl的offsetTop
+	但是如果直接在mounted中获取tabControl的offsetTop，那么值是不正确的
+	如何获取正确的值呢？
+	     监听HomeSwiper中的img的加载完成
+	     加载完成后，发出事件，在Home.vue中，获取正确的值
+	     补充：
+		为了不让HomeSwiper多次发出事件
+		可以使用isLoad的变量进行状态的记录
+	     注意：这里不进行多次调用和debounce的区别
+     监听滚动，动态的改变tabControl的样式

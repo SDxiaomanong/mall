@@ -40,6 +40,7 @@ export default {
     this.scroll.on('scroll',(position) => {
       this.$emit('scrollPosition',position)
     })
+    this.scroll.refresh()
     //监听上拉事件
     this.scroll.on('pullingUp',() => {
       this.$emit('pullingUp')
@@ -48,10 +49,13 @@ export default {
   computed: {},
   methods: {
     scrollTo(x, y, time=300){
-      this.scroll.scrollTo(x, y, time)
+      this.scroll && this.scroll.scrollTo(x, y, time)
+    },
+    refresh(){
+      this.scroll && this.scroll.refresh();
     },
     finishPullUp(){
-      this.scroll.finishPullUp();
+      this.scroll && this.scroll.finishPullUp();
     }
   },
 }
